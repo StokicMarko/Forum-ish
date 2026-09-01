@@ -1,4 +1,4 @@
-﻿namespace Entities;
+﻿namespace DefaultNamespace;
 
 public class User
 {
