@@ -9,9 +9,6 @@ public class CommentInMemoryRepository : ICommentRepository
     
     public CommentInMemoryRepository()
     {
-        // I add a bunch of dummy data.
-        // The underscore is a discard, which means I don't care about the result. AddAsync returns the added comment, but I don't need it here.
-        // I call .Result on the Task, because I can't make the constructor async.
         _ = AddAsync(new Comment("Cats are great!", 1, 1)).Result;
         _ = AddAsync(new Comment("So true!", 1, 2)).Result;
         _ = AddAsync(new Comment("They're just so fluffy", 1, 2)).Result;

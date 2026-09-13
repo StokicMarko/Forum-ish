@@ -1,56 +1,36 @@
-﻿using CLI.UI.ManagePosts;
-using CLI.UI.ManageUsers;
-using RepositoryContracts;
+﻿using RepositoryContracts;
 
 namespace CLI.UI;
 
-public class CliApp 
-    (IUserRepository userRepository, ICommentRepository commentRepository, IPostRepository postRepository)
+public class CliApp
 {
+    private readonly ManageUsersView manageUsersView;
+    private readonly ManagePostsView managePostsView;
+
+    public CliApp(IUserRepository userRepo, IPostRepository postRepo, ICommentRepository commentRepo)
+    {
+        manageUsersView = new ManageUsersView(userRepo);
+        managePostsView = new ManagePostsView(postRepo, commentRepo, userRepo);
+    }
+
     public async Task StartAsync()
     {
-        await StartMainMenu();
-        
-        Console.WriteLine("Exiting the programm...");
-    }
-
-    private async Task StartMainMenu()
-    {
-        while (true)
+        bool running = true;
+        while (running)
         {
-            printMenu();
-            
-            string? userInput = Console.ReadLine();
+            Console.WriteLine("\n=== Forum-ish CLI ===");
+            Console.WriteLine("1. Manage Users");
+            Console.WriteLine("2. Manage Posts");
+            Console.WriteLine("0. Exit");
+            Console.Write("Choice: ");
 
-            switch (userInput) 
+            switch (Console.ReadLine())
             {
-                case "1":
-                    CreateUserView userView = new CreateUserView(userRepository);
-                    userView.newUser();
-                    break;
-                case "2":
-                    CreatePostView postView = new CreatePostView(postRepository);
-                    postView.newPost();
-                    break;
-                case "3":
-                    break;
-                default:
-                    Console.WriteLine($"Invalid input: {userInput}");
-                    break;
+                case "1": await manageUsersView.ShowAsync(); break;
+                case "2": await managePostsView.ShowAsync(); break;
+                case "0": running = false; break;
+                default: Console.WriteLine("Invalid choice."); break;
             }
         }
-    }
-
-    private void printMenu()
-    {
-        string menu = """
-                      1 - Create a new User
-                      2 - Create a new Post
-                      3 - Add a new Comment
-                      4 - View posts overview
-                      5 - View specific post
-                      0 - Exit
-                      """;
-        Console.WriteLine(menu);
     }
 }
