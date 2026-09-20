@@ -2,16 +2,10 @@
 
 namespace CLI.UI;
 
-public class CliApp
+public class CliApp(IUserRepository userRepo, IPostRepository postRepo, ICommentRepository commentRepo)
 {
-    private readonly ManageUsersView manageUsersView;
-    private readonly ManagePostsView managePostsView;
-
-    public CliApp(IUserRepository userRepo, IPostRepository postRepo, ICommentRepository commentRepo)
-    {
-        manageUsersView = new ManageUsersView(userRepo);
-        managePostsView = new ManagePostsView(postRepo, commentRepo, userRepo);
-    }
+    private readonly ManageUsersView _manageUsersView = new(userRepo);
+    private readonly ManagePostsView _managePostsView = new(postRepo, commentRepo, userRepo);
 
     public async Task StartAsync()
     {
@@ -26,8 +20,8 @@ public class CliApp
 
             switch (Console.ReadLine())
             {
-                case "1": await manageUsersView.ShowAsync(); break;
-                case "2": await managePostsView.ShowAsync(); break;
+                case "1": await _manageUsersView.ShowAsync(); break;
+                case "2": await _managePostsView.ShowAsync(); break;
                 case "0": running = false; break;
                 default: Console.WriteLine("Invalid choice."); break;
             }
