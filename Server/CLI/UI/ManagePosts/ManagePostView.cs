@@ -66,7 +66,7 @@ public class ManagePostsView(
         Console.Write("Body: ");
         string body = Console.ReadLine() ?? "";
 
-        Post post = new Post(body, title, userId);
+        Post post = new Post(0, body, title, userId);
         Post created = await postRepository.AddAsync(post);
         Console.WriteLine($"Created post with Id {created.Id}");
     }

@@ -12,7 +12,7 @@ public class CreatePostView(IPostRepository postRepository)
         Console.WriteLine("Please enter a description for the new post:");
         string description = Console.ReadLine();
 
-        postRepository.AddAsync(new Post(name, description, 0));
+        postRepository.AddAsync(new Post(0, name, description, 0));
         
         Console.WriteLine("Post created");
     }
