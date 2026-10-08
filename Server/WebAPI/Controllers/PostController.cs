@@ -8,7 +8,7 @@ namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PostController(IPostRepository repository) : ControllerBase
+public class PostController(IPostRepository repository, IUserRepository userRepository) : ControllerBase
 {
     [HttpGet("{id}")]
     public async Task<ActionResult<PostDTO>> GetSingle(int id)
@@ -35,9 +35,8 @@ public class PostController(IPostRepository repository) : ControllerBase
     public async Task<ActionResult<PostDTO>> Create([FromBody] CreatePostDTO request)
     {
 
-        VerifyIfUserExist(request.UserId);
+        await userRepository.GetSingleAsync(request.UserId);
         
-        Console.WriteLine(request.UserId);
         Post created = await repository.AddAsync(new Post(0, request.Body,  request.Title, request.UserId));
         return Ok(new PostDTO
         {
@@ -49,9 +48,8 @@ public class PostController(IPostRepository repository) : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<PostDTO>> UpdatePost(int id, [FromBody] UpdatePostDTO request)
+    public async Task<ActionResult<PostDTO>> Update(int id, [FromBody] UpdatePostDTO request)
     {
-        
         Post post = await repository.GetSingleAsync(id);
         post.Title = request.Title;
         post.Body = request.Body;
@@ -75,16 +73,5 @@ public class PostController(IPostRepository repository) : ControllerBase
             return NotFound("Post not found");
         await repository.DeleteAsync(id);
         return Ok();
-    }
-    
-    private void VerifyIfUserExist(int requestUserId)
-    {
-        bool exists = repository.GetMany()
-            .Any(u => u.Id == requestUserId);
-
-        if (!exists)
-        {
-            throw new NotFoundException($"Author of the post does not exist");
-        }
     }
 }
