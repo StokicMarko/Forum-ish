@@ -1,0 +1,110 @@
+@using ApiContracts
+@using ApiContracts.Comment
+@using BlazorApp.Services
+@inject ICommentService commentService
+@inject IUserService userService
+
+<h2 class="h4 mt-4">Comments</h2>
+
+@if (loadError != null)
+{
+    <div class="alert alert-danger">@loadError</div>
+}
+else if (comments == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else if (comments.Count == 0)
+{
+    <p>No comments yet.</p>
+}
+else
+{
+    @foreach (CommentDTO comment in comments)
+    {
+        <div class="border rounded p-2 mb-2">
+            <div class="text-muted small">@AuthorName(comment.WroteBy)</div>
+            <div style="white-space: pre-wrap">@comment.Body</div>
+        </div>
+    }
+}
+
+<div class="mt-4">
+    <label for="comment" class="form-label">Add a comment</label>
+    <textarea id="comment" class="form-control mb-2" rows="3" @bind="newComment" @bind:event="oninput"></textarea>
+
+    @if (addError != null)
+    {
+        <div class="alert alert-danger">@addError</div>
+    }
+
+    <button class="btn btn-primary" @onclick="AddAsync" disabled="@isSaving">Add comment</button>
+</div>
+
+@code {
+    [Parameter] public int PostId { get; set; }
+
+    private List<CommentDTO>? comments;
+    private Dictionary<int, string> usernames = new();
+    private string newComment = "";
+    private string? loadError;
+    private string? addError;
+    private bool isSaving;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        comments = null;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loadError = null;
+        try
+        {
+            CommentDTO[] allComments = await commentService.GetCommentsAsync();
+            comments = allComments.Where(c => c.PostId == PostId).ToList();
+            UserDTO[] users = await userService.GetUsersAsync();
+            usernames = users.ToDictionary(u => u.Id, u => u.Username);
+        }
+        catch (Exception e)
+        {
+            loadError = e.Message;
+        }
+    }
+
+    private async Task AddAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newComment))
+        {
+            addError = "Write something before adding a comment.";
+            return;
+        }
+
+        isSaving = true;
+        addError = null;
+        try
+        {
+            await commentService.AddCommentAsync(new CreateCommentDTO
+            {
+                Body = newComment,
+                WroteBy = CurrentUser.Id,
+                PostId = PostId
+            });
+            newComment = "";
+            await LoadAsync();
+        }
+        catch (Exception e)
+        {
+            addError = e.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private string AuthorName(int userId) => usernames.GetValueOrDefault(userId, "Unknown user");
+}
