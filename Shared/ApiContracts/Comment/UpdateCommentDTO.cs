@@ -2,5 +2,5 @@
 
 public class UpdateCommentDTO
 {
-    public string Body { get; set; }
+    public required string Body { get; set; }
 }

@@ -2,7 +2,7 @@
 
 public class CreateCommentDTO
 {
-    public string Body { get; set; }
-    public int WroteBy { get; set; }
+    public required string Body { get; set; }
+    public required int WroteBy { get; set; }
     public required int PostId { get; set; }
 }

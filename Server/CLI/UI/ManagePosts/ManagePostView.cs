@@ -104,7 +104,7 @@ public class ManagePostsView(
         Console.WriteLine($"Body: {post.Body}");
 
         var comments =  commentRepository.GetMany();
-        var postComments = comments.Where(c => c.WroteBy == id).ToList();
+        var postComments = comments.Where(c => c.PostId == id).ToList();
 
         if (!postComments.Any())
         {
@@ -220,7 +220,7 @@ public class ManagePostsView(
         Console.Write("Comment: ");
         string body = Console.ReadLine() ?? "";
 
-        var comment = new Comment(body, postId, userId);
+        var comment = new Comment(body, userId, postId);
         var created = await commentRepository.AddAsync(comment);
         Console.WriteLine($"Added comment with Id {created.Id}");
     }

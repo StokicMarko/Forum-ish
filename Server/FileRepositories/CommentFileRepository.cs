@@ -17,7 +17,6 @@ public class CommentFileRepository : ICommentRepository
     }
     public async Task<Comment> AddAsync(Comment comment)
     {
-        Console.WriteLine(comment.WroteBy);
         string commentsAsJson = await File.ReadAllTextAsync(filePath);
         List<Comment> comments = JsonSerializer.Deserialize<List<Comment>>(commentsAsJson)!;
         int maxId = comments.Count > 0 ? comments.Max(c => c.Id) : 0;

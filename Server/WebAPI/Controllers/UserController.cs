@@ -13,7 +13,7 @@ public class UserController(IUserRepository repository) : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDTO>> GetSingle(int id)
     {
-        User user = await repository.GetSingleAsync(id);
+        User user = await GetExistingUserAsync(id);
         return Ok(new UserDTO { Id = user.Id, Username = user.Username });
     }
 
@@ -37,10 +37,8 @@ public class UserController(IUserRepository repository) : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<UserDTO>> Update([FromBody] UpdateUserDTO newUser, int id)
     {
-        User user = await repository.GetSingleAsync(id);
-        if (user == null)
-            return NotFound("User not found");
-        
+        await GetExistingUserAsync(id);
+
         await repository.UpdateAsync(new User(newUser.Username, newUser.Password) { Id = id });
         return Ok(new UserDTO{ Id = id, Username = newUser.Username });
     }
@@ -48,11 +46,15 @@ public class UserController(IUserRepository repository) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-        User user = await repository.GetSingleAsync(id);
-        if (user == null)
-            return NotFound("User not found");
+        await GetExistingUserAsync(id);
         await repository.DeleteAsync(id);
         return Ok();
+    }
+
+    private async Task<User> GetExistingUserAsync(int id)
+    {
+        return await repository.GetSingleAsync(id)
+               ?? throw new NotFoundException($"User with id '{id}' not found");
     }
 
     private void VerifyUserNameIsAvailable(string userName)

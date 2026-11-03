@@ -13,7 +13,7 @@ public class PostController(IPostRepository repository, IUserRepository userRepo
     [HttpGet("{id}")]
     public async Task<ActionResult<PostDTO>> GetSingle(int id)
     {
-        Post post = await repository.GetSingleAsync(id);
+        Post post = await GetExistingPostAsync(id);
         return Ok(new PostDTO()
         {
             Id = post.Id,
@@ -30,13 +30,13 @@ public class PostController(IPostRepository repository, IUserRepository userRepo
             .Select(post => new PostDTO() { Id = post.Id,  UserId = post.UserId, Body = post.Body, Title = post.Title });
         return Ok(posts);
     }
-    
+
     [HttpPost]
     public async Task<ActionResult<PostDTO>> Create([FromBody] CreatePostDTO request)
     {
+        if (await userRepository.GetSingleAsync(request.UserId) is null)
+            throw new NotFoundException($"User with id '{request.UserId}' not found");
 
-        await userRepository.GetSingleAsync(request.UserId);
-        
         Post created = await repository.AddAsync(new Post(0, request.Body,  request.Title, request.UserId));
         return Ok(new PostDTO
         {
@@ -50,7 +50,7 @@ public class PostController(IPostRepository repository, IUserRepository userRepo
     [HttpPut("{id}")]
     public async Task<ActionResult<PostDTO>> Update(int id, [FromBody] UpdatePostDTO request)
     {
-        Post post = await repository.GetSingleAsync(id);
+        Post post = await GetExistingPostAsync(id);
         post.Title = request.Title;
         post.Body = request.Body;
 
@@ -64,14 +64,18 @@ public class PostController(IPostRepository repository, IUserRepository userRepo
             UserId = post.UserId
         });
     }
-    
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-        Post post = await repository.GetSingleAsync(id);
-        if (post == null)
-            return NotFound("Post not found");
+        await GetExistingPostAsync(id);
         await repository.DeleteAsync(id);
         return Ok();
+    }
+
+    private async Task<Post> GetExistingPostAsync(int id)
+    {
+        return await repository.GetSingleAsync(id)
+               ?? throw new NotFoundException($"Post with id '{id}' not found");
     }
 }
