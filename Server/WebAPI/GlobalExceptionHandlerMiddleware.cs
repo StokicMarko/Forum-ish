@@ -21,6 +21,11 @@ public class GlobalExceptionHandlerMiddleware(ILogger<GlobalExceptionHandlerMidd
             context.Response.StatusCode = StatusCodes.Status409Conflict;
             await context.Response.WriteAsync(ex.Message);
         }
+        catch (WrongDataException ex)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsync(ex.Message);
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled exception");
