@@ -1,0 +1,54 @@
+@page "/posts/{PostId:int}"
+@using ApiContracts
+@using ApiContracts.Post
+@using BlazorApp.Services
+@inject IPostService postService
+@inject IUserService userService
+
+<PageTitle>@(post?.Title ?? "Post")</PageTitle>
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (post == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <h1>@post.Title</h1>
+    <p class="text-muted">By @authorName</p>
+    <p style="white-space: pre-wrap">@post.Body</p>
+}
+
+<p>
+    <a href="posts">Back to all posts</a>
+</p>
+
+@code {
+    [Parameter] public int PostId { get; set; }
+
+    private PostDTO? post;
+    private string authorName = "Unknown user";
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        post = null;
+        errorMessage = null;
+        try
+        {
+            post = await postService.GetPostAsync(PostId);
+            UserDTO[] users = await userService.GetUsersAsync();
+            authorName = users.FirstOrDefault(u => u.Id == post.UserId)?.Username ?? "Unknown user";
+        }
+        catch (Exception e)
+        {
+            post = null;
+            errorMessage = e.Message;
+        }
+    }
+}
